@@ -61,6 +61,10 @@ async def trade(message):
     elif trader.action == Actions.SHORT:
         await trader.short_entry()
 
+    if trader.entry_order.get('id') is None:
+        logger.debug('There was no entry, bailing')
+        return
+
     # Send Notification
     logger.debug('Sending notifications via Telegram')
     await send_telegram_message(trader=trader,

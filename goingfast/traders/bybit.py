@@ -11,6 +11,13 @@ class BybitTrader(BaseTrader):
 
     async def long_entry(self):
         self.logger.debug('Got long entry command')
+
+        self.logger.debug('Checking if there is a running position')
+        has_position = await self.has_position()
+        if has_position:
+            self.logger.info('There is a running position, bailing..')
+            return
+
         await self.set_leverage(leverage=LEVERAGE)
 
         self.logger.debug('Going to market buy to bybit')
@@ -39,6 +46,13 @@ class BybitTrader(BaseTrader):
 
     async def short_entry(self):
         self.logger.debug('Got short entry command')
+
+        self.logger.debug('Checking if there is a running position')
+        has_position = await self.has_position()
+        if has_position:
+            self.logger.info('There is a running position, bailing..')
+            return
+
         await self.set_leverage(leverage=LEVERAGE)
 
         self.logger.debug('Going to market sell to bybit')
@@ -149,3 +163,17 @@ class BybitTrader(BaseTrader):
                                            amount=amount,
                                            stop_price=stop_price,
                                            price=stop_action_price)
+
+    async def has_position(self):
+        method_name = 'private_get_position_list'
+        method = getattr(self.client, method_name)
+        response = method(params={
+            'symbol': self.symbol
+        })
+        position_info = response.get('result')
+        if not position_info:
+            return False
+
+        side = position_info.get('side')
+
+        return side == 'None'
