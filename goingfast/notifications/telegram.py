@@ -1,7 +1,7 @@
 from os import environ
 from string import Template
 from goingfast.traders.base import BaseTrader
-from goingfast import logger
+from sanic.log import logger
 import telepot
 
 
