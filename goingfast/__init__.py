@@ -9,7 +9,7 @@ from sanic.response import HTTPResponse, text
 from goingfast.traders.base import Actions
 from goingfast.traders.bybit import BybitTrader
 
-APP_DEBUG = True if environ.get('APP_DEBUG') == 1 else False
+APP_DEBUG = True if environ.get('APP_DEBUG') == '1' else False
 log_level = logging.DEBUG if APP_DEBUG else logging.INFO
 logger.setLevel(level=log_level)
 
