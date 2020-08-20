@@ -8,6 +8,7 @@ from sanic.response import HTTPResponse, text
 
 from goingfast.traders.base import Actions
 from goingfast.traders.bybit import BybitTrader
+from goingfast.notifications.telegram import send_telegram_message
 
 APP_DEBUG = True if environ.get('APP_DEBUG') == '1' else False
 log_level = logging.DEBUG if APP_DEBUG else logging.INFO
@@ -56,7 +57,10 @@ async def trade(message):
     elif action == Actions.SHORT:
         await trader.short_entry()
 
-    return trader
+    # Send Notification
+    logger.debug('Sending notifications via Telegram')
+    await send_telegram_message(trader=trader,
+                                tv_alert_message=message)
 
 
 async def webhook_handler(request: Request) -> HTTPResponse:
