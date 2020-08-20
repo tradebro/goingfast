@@ -102,7 +102,7 @@ class BybitTrader(BaseTrader):
 
         return response
 
-    async def limit_order(self, side, amount, price):
+    async def limit_order(self, side, amount, price, reduce_only: bool = True):
         method_name = 'privatePostOrderCreate'
 
         method = getattr(self.client, method_name)
@@ -112,7 +112,8 @@ class BybitTrader(BaseTrader):
             'order_type': 'Limit',
             'qty': str(amount),
             'price': str(price),
-            'time_in_force': 'GoodTillCancel'
+            'time_in_force': 'GoodTillCancel',
+            'reduce_only': reduce_only
         })
         order.update({
             'id': order.get('result').get('stop_order_id'),
