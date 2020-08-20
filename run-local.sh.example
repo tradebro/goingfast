@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+
+# App
+export APP_HOST='0.0.0.0'
+export APP_PORT='8080'
+export APP_DEBUG=1
+
+# Telegram
+export TELEGRAM_TOKEN=""
+export TELEGRAM_CHAT_ID=""
+
+# Trader
+export STOP_DELTA=1
+export TP_DELTA=1
+export CAPITAL_IN_USD="1000"
+
+# Bybit
+export API_KEY=""
+export API_SECRET=""
+export TRADER="bybit"
+export LEVERAGE="10"
+
+. env/bin/activate
+python app.py
