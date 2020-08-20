@@ -175,5 +175,6 @@ class BybitTrader(BaseTrader):
             return False
 
         side = position_info.get('side')
+        print(side)
 
-        return side == 'None'
+        return side != 'None'
