@@ -56,9 +56,9 @@ async def trade(message):
         logger.error(f'Exchange does not support the action: {action}')
         raise e
 
-    if action == Actions.LONG:
+    if trader.action == Actions.LONG:
         await trader.long_entry()
-    elif action == Actions.SHORT:
+    elif trader.action == Actions.SHORT:
         await trader.short_entry()
 
     # Send Notification

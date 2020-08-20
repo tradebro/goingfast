@@ -7,6 +7,7 @@ LEVERAGE = int(environ.get('LEVERAGE'))
 class BybitTrader(BaseTrader):
     __name__ = 'bybit'
     symbol = 'BTCUSD'
+    normalized_symbol = 'BTC/USD'
 
     async def long_entry(self):
         self.logger.debug('Got long entry command')
@@ -49,7 +50,7 @@ class BybitTrader(BaseTrader):
 
         self.logger.debug('Going to send limit buy order')
         self.exit_order = await self.limit_buy_order(amount=self.quantity,
-                                                     price=self.tp_price)
+                                                     price=str(self.tp_price))
         self.logger.info(f'Sucessfully sent limit buy order for {self.quantity} contracts ' +
                          f'at {self.tp_price} with order id: {self.exit_order}')
 

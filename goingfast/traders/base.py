@@ -19,6 +19,7 @@ class Actions(enum.Enum):
 class BaseTrader:
     __name__ = 'base'
     symbol = ''
+    normalized_symbol = ''
 
     def __init__(self, action: Actions, quantity: int, logger: Logger):
         self.action = action
@@ -104,19 +105,19 @@ class BaseTrader:
     async def market_buy_order(self, quantity):
         if not self.client.has['createMarketOrder']:
             raise AttributeError('The selected exchange does not support market orders')
-        order = self.client.create_market_buy_order(symbol=self.symbol,
+        order = self.client.create_market_buy_order(symbol=self.normalized_symbol,
                                                     amount=quantity)
         return order
 
     async def market_sell_order(self, quantity):
         if not self.client.has['createMarketOrder']:
             raise AttributeError('The selected exchange does not support market orders')
-        order = self.client.create_market_sell_order(symbol=self.symbol,
+        order = self.client.create_market_sell_order(symbol=self.normalized_symbol,
                                                      amount=quantity)
         return order
 
     async def limit_buy_order(self, amount, price):
-        order = self.client.create_order(symbol=self.symbol,
+        order = self.client.create_order(symbol=self.normalized_symbol,
                                          type='limit',
                                          side='buy',
                                          amount=amount,
@@ -124,7 +125,7 @@ class BaseTrader:
         return order
 
     async def limit_sell_order(self, amount, price):
-        order = self.client.create_order(symbol=self.symbol,
+        order = self.client.create_order(symbol=self.normalized_symbol,
                                          type='limit',
                                          side='sell',
                                          amount=amount,
