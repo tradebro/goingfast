@@ -17,6 +17,8 @@ class BybitTrader(BaseTrader):
         self.entry_order = await self.market_buy_order(quantity=self.quantity)
         self.logger.info(f'Successfully bought {self.quantity} contracts with order id: {self.entry_order.get("id")}')
 
+        self.client.verbose = True
+
         await self.long_exit()
 
     async def long_exit(self):
@@ -26,7 +28,7 @@ class BybitTrader(BaseTrader):
         self.exit_order = await self.limit_sell_order(amount=self.quantity,
                                                       price=self.tp_price)
         self.logger.info(f'Sucessfully sent limit sell order for {self.quantity} contracts ' +
-                         f'at {self.tp_price} with order id: {self.exit_order}')
+                         f'at {self.tp_price} with order id: {self.exit_order.get("id")}')
 
         self.logger.debug('Going to send stop limit sell order')
         self.exit_stop_limit_order = await self.limit_stop_sell_order(amount=self.quantity,
@@ -52,7 +54,7 @@ class BybitTrader(BaseTrader):
         self.exit_order = await self.limit_buy_order(amount=self.quantity,
                                                      price=str(self.tp_price))
         self.logger.info(f'Sucessfully sent limit buy order for {self.quantity} contracts ' +
-                         f'at {self.tp_price} with order id: {self.exit_order}')
+                         f'at {self.tp_price} with order id: {self.exit_order.get("id")}')
 
         self.logger.debug('Going to send stop limit buy order')
         self.exit_stop_limit_order = await self.limit_stop_buy_order(amount=self.quantity,
@@ -84,6 +86,35 @@ class BybitTrader(BaseTrader):
             raise AssertionError('Got error message while setting leverage')
 
         return response
+
+    async def limit_order(self, side, amount, price):
+        method_name = 'privatePostOrderCreate'
+
+        method = getattr(self.client, method_name)
+        order = method(params={
+            'side': side,
+            'symbol': self.symbol,
+            'order_type': 'Limit',
+            'qty': str(amount),
+            'price': str(price),
+            'time_in_force': 'GoodTillCancel'
+        })
+        order.update({
+            'id': order.get('result').get('stop_order_id'),
+            'price': order.get('result').get('price')
+        })
+
+        return order
+
+    async def limit_buy_order(self, amount, price):
+        return await self.limit_order(side='Buy',
+                                      amount=amount,
+                                      price=price)
+
+    async def limit_sell_order(self, amount, price):
+        return await self.limit_order(side='Sell',
+                                      amount=amount,
+                                      price=price)
 
     async def limit_stop_order(self, side, amount, stop_price, price):
         method_name = 'openapiPostStopOrderCreate'

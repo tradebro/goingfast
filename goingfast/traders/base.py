@@ -117,19 +117,15 @@ class BaseTrader:
         return order
 
     async def limit_buy_order(self, amount, price):
-        order = self.client.create_order(symbol=self.normalized_symbol,
-                                         type='limit',
-                                         side='buy',
-                                         amount=amount,
-                                         price=price)
+        order = self.client.create_limit_buy_order(self.normalized_symbol,
+                                                   amount,
+                                                   price)
         return order
 
     async def limit_sell_order(self, amount, price):
-        order = self.client.create_order(symbol=self.normalized_symbol,
-                                         type='limit',
-                                         side='sell',
-                                         amount=amount,
-                                         price=price)
+        order = self.client.create_limit_sell_order(self.normalized_symbol,
+                                                    amount,
+                                                    price)
         return order
 
     @staticmethod

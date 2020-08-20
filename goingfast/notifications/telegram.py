@@ -42,15 +42,15 @@ async def send_telegram_message(trader: BaseTrader, tv_alert_message: dict):
         'indicator': tv_alert_message.get('indicator'),
         'exchange': tv_alert_message.get('exchange'),
         'pair': tv_alert_message.get('pair'),
-        'close': tv_alert_message.get('close'),
+        'close': str(tv_alert_message.get('close')),
         'trader': trader.__name__.capitalize(),
-        'quantity': trader.quantity,
-        'entryprice': trader.entry_price,
-        'stopprice': trader.stop_limit_trigger_price,
-        'tpprice': trader.tp_price
+        'quantity': str(trader.quantity),
+        'entryprice': str(trader.entry_price),
+        'stopprice': str(trader.stop_limit_trigger_price),
+        'tpprice': str(trader.tp_price)
     }
 
-    template = Template(Template)
+    template = Template(TEMPLATE)
     message_html = template.substitute(values)
 
     # Send message
