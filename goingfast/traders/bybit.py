@@ -9,16 +9,25 @@ class BybitTrader(BaseTrader):
     symbol = 'BTCUSD'
     normalized_symbol = 'BTC/USD'
 
-    async def long_entry(self):
+    async def pre_entry(self):
         self.logger.debug('Got long entry command')
 
         self.logger.debug('Checking if there is a running position')
         has_position = await self.has_position()
         if has_position:
             self.logger.info('There is a running position, bailing..')
-            return
+            raise AssertionError('Can only trade if there is no running position')
+
+        self.logger.debug('Cancelling all orders')
+        await self.cancel_all_orders()
+
+        self.logger.debug('Cancelling all stop orders')
+        await self.cancel_all_stop_orders()
 
         await self.set_leverage(leverage=LEVERAGE)
+
+    async def long_entry(self):
+        await self.pre_entry()
 
         self.logger.debug('Going to market buy to bybit')
         self.entry_order = await self.market_buy_order(quantity=self.quantity)
@@ -45,15 +54,7 @@ class BybitTrader(BaseTrader):
                          f'{self.stop_limit_trigger_price} selling at {self.stop_limit_price}')
 
     async def short_entry(self):
-        self.logger.debug('Got short entry command')
-
-        self.logger.debug('Checking if there is a running position')
-        has_position = await self.has_position()
-        if has_position:
-            self.logger.info('There is a running position, bailing..')
-            return
-
-        await self.set_leverage(leverage=LEVERAGE)
+        await self.pre_entry()
 
         self.logger.debug('Going to market sell to bybit')
         self.entry_order = await self.market_sell_order(quantity=self.quantity)
@@ -175,6 +176,19 @@ class BybitTrader(BaseTrader):
             return False
 
         side = position_info.get('side')
-        print(side)
 
         return side != 'None'
+
+    async def cancel_all_stop_orders(self):
+        method_name = 'privatePostStopOrderCancelAll'
+        method = getattr(self.client, method_name)
+        method(params={
+            'symbol': self.symbol
+        })
+
+    async def cancel_all_orders(self):
+        method_name = 'privatePostOrderCancelAll'
+        method = getattr(self.client, method_name)
+        method(params={
+            'symbol': self.symbol
+        })

@@ -56,12 +56,12 @@ async def trade(message):
         logger.error(f'Exchange does not support the action: {action}')
         raise e
 
-    if trader.action == Actions.LONG:
-        await trader.long_entry()
-    elif trader.action == Actions.SHORT:
-        await trader.short_entry()
-
-    if trader.entry_order.get('id') is None:
+    try:
+        if trader.action == Actions.LONG:
+            await trader.long_entry()
+        elif trader.action == Actions.SHORT:
+            await trader.short_entry()
+    except AssertionError:
         logger.debug('There was no entry, bailing')
         return
 
