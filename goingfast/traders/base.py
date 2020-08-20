@@ -130,3 +130,7 @@ class BaseTrader:
                                          amount=amount,
                                          price=price)
         return order
+
+    @staticmethod
+    def format_number(number, precision: int = 2) -> str:
+        return '{:0.0{}f}'.format(number, precision)
