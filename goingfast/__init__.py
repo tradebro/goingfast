@@ -6,7 +6,7 @@ from sanic.log import logger
 from sanic.request import Request
 from sanic.response import HTTPResponse, text
 
-from goingfast.traders.base import Actions
+from goingfast.traders.base import Actions, BaseTrader
 from goingfast.traders.bybit import BybitTrader
 from goingfast.notifications.telegram import send_telegram_message
 
@@ -34,6 +34,19 @@ def ok_response():
     return text('ok')
 
 
+def show_config(trader: BaseTrader):
+    logger.debug('---------------------------------')
+    logger.debug('GoingFast Config')
+    logger.debug('---------------------------------')
+    logger.debug(f'Trader: {trader.__name__.capitalize()}')
+    logger.debug(f'Direction: {trader.action}')
+    logger.debug(f'Quantity: {trader.quantity}')
+    logger.debug(f'Stop Delta: {trader.stop_delta}')
+    logger.debug(f'TP Delta: {trader.tp_delta}')
+    logger.debug(f'Leverage: {trader.leverage}')
+    logger.debug('---------------------------------')
+
+
 async def trade(message):
     action = message.get('action').lower()
     if action != 'long' and action != 'short':
@@ -55,6 +68,8 @@ async def trade(message):
     except NotImplementedError as e:
         logger.error(f'Exchange does not support the action: {action}')
         raise e
+
+    show_config(trader=trader)
 
     try:
         if trader.action == Actions.LONG:

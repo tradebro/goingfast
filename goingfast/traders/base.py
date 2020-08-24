@@ -31,6 +31,10 @@ class BaseTrader:
         self.exit_stop_limit_order = dict()
         self.exit_stop_market_order = dict()
 
+        self.stop_delta = STOP_DELTA
+        self.tp_delta = TP_DELTA
+        self.leverage = None
+
     @property
     def entry_price(self) -> Decimal:
         if not self.entry_order:
@@ -40,9 +44,9 @@ class BaseTrader:
     @property
     def stop_limit_trigger_price(self) -> Decimal:
         if self.action == Actions.LONG:
-            return self.entry_price - STOP_DELTA
+            return self.entry_price - self.stop_delta
         elif self.action == Actions.SHORT:
-            return self.entry_price + STOP_DELTA
+            return self.entry_price + self.stop_delta
         else:
             return Decimal(0)
 
@@ -67,9 +71,9 @@ class BaseTrader:
     @property
     def tp_price(self):
         if self.action == Actions.LONG:
-            return self.entry_price + TP_DELTA
+            return self.entry_price + self.tp_delta
         elif self.action == Actions.SHORT:
-            return self.entry_price - TP_DELTA
+            return self.entry_price - self.tp_delta
         else:
             return Decimal(0)
 

@@ -1,4 +1,5 @@
-from goingfast.traders.base import BaseTrader
+from goingfast.traders.base import BaseTrader, Actions
+from logging import Logger
 from os import environ
 
 LEVERAGE = int(environ.get('LEVERAGE'))
@@ -8,6 +9,11 @@ class BybitTrader(BaseTrader):
     __name__ = 'bybit'
     symbol = 'BTCUSD'
     normalized_symbol = 'BTC/USD'
+
+    def __init__(self, action: Actions, quantity: int, logger: Logger):
+        super().__init__(action, quantity, logger)
+
+        self.leverage = LEVERAGE
 
     async def pre_entry(self):
         self.logger.debug('Got long entry command')
@@ -24,7 +30,7 @@ class BybitTrader(BaseTrader):
         self.logger.debug('Cancelling all stop orders')
         await self.cancel_all_stop_orders()
 
-        await self.set_leverage(leverage=LEVERAGE)
+        await self.set_leverage(leverage=self.leverage)
 
     async def long_entry(self):
         await self.pre_entry()
@@ -87,11 +93,11 @@ class BybitTrader(BaseTrader):
         method = getattr(self.client, get_name)
         response = method()
         if int(response.get('result').get(self.symbol).get('leverage')) == leverage:
-            self.logger.debug(f'Current leverage is just as configured: {LEVERAGE}x')
+            self.logger.debug(f'Current leverage is just as configured: {self.leverage}x')
             return response
 
         # Set Leverage
-        self.logger.debug(f'Setting leverage to {LEVERAGE}x')
+        self.logger.debug(f'Setting leverage to {self.leverage}x')
         method = getattr(self.client, post_name)
         response = method(params={
             'symbol': self.symbol,
