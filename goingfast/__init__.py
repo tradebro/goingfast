@@ -87,6 +87,10 @@ async def trade(message):
 
 
 async def webhook_handler(request: Request) -> HTTPResponse:
+    if APP_DEBUG:
+        logger.debug('Request body below')
+        print(request.body)
+
     message = request.json
     if not message or not is_valid_message(message=message):
         logger.debug('Not a valid message, ignoring..')
