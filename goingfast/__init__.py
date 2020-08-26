@@ -1,4 +1,5 @@
 import logging
+import ujson
 from os import environ
 
 from sanic import Sanic
@@ -91,7 +92,13 @@ async def webhook_handler(request: Request) -> HTTPResponse:
         logger.debug('Request body below')
         print(request.body)
 
-    message = request.json
+    text_body = request.body
+    try:
+        message = ujson.loads(text_body)
+    except ValueError:
+        logger.debug('Failed parsing the post body as JSON')
+        message = None
+
     if not message or not is_valid_message(message=message):
         logger.debug('Not a valid message, ignoring..')
         return ok_response()
