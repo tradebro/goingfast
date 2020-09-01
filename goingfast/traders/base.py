@@ -21,10 +21,11 @@ class BaseTrader:
     symbol = ''
     normalized_symbol = ''
 
-    def __init__(self, action: Actions, quantity: int, logger: Logger):
+    def __init__(self, action: Actions, quantity: int, logger: Logger, metadata: dict = None):
         self.action = action
         self.quantity = quantity
         self.logger = logger
+        self.metadata = metadata
 
         self.entry_order = dict()
         self.exit_order = dict()
@@ -43,6 +44,9 @@ class BaseTrader:
 
     @property
     def stop_limit_trigger_price(self) -> Decimal:
+        if self.metadata and self.metadata.get('stop_limit_trigger_price') is not None:
+            return Decimal(self.metadata.get('stop_limit_trigger_price'))
+
         if self.action == Actions.LONG:
             return self.entry_price - self.stop_delta
         elif self.action == Actions.SHORT:

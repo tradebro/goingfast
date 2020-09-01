@@ -62,10 +62,13 @@ async def trade(message):
         raise NotImplementedError('Trader chosen is not implemented yet')
     logger.debug(f'Going to trade at {TRADER.capitalize()}')
 
+    metadata = message.get('metadata')
+
     try:
         trader = trader_class(action=Actions.LONG if action == 'long' else Actions.SHORT,
                               quantity=CAPITAL_IN_USD,
-                              logger=logger)
+                              logger=logger,
+                              metadata=metadata)
     except NotImplementedError as e:
         logger.error(f'Exchange does not support the action: {action}')
         raise e

@@ -10,8 +10,8 @@ class BybitTrader(BaseTrader):
     symbol = 'BTCUSD'
     normalized_symbol = 'BTC/USD'
 
-    def __init__(self, action: Actions, quantity: int, logger: Logger):
-        super().__init__(action, quantity, logger)
+    def __init__(self, action: Actions, quantity: int, logger: Logger, metadata: dict = None):
+        super().__init__(action, quantity, logger, metadata)
 
         self.leverage = LEVERAGE
 
@@ -54,7 +54,9 @@ class BybitTrader(BaseTrader):
 
         self.logger.debug('Going to send stop limit sell order')
         self.exit_stop_limit_order = await self.limit_stop_sell_order(amount=self.quantity,
-                                                                      stop_price=self.stop_limit_trigger_price,
+                                                                      stop_price=self.format_number(
+                                                                          number=self.stop_limit_trigger_price,
+                                                                          precision=0),
                                                                       stop_action_price=self.stop_limit_price)
         self.logger.info(f'Successfully sent limit stop sell order for {self.quantity} contracts at trigger ' +
                          f'{self.stop_limit_trigger_price} selling at {self.stop_limit_price}')
