@@ -45,7 +45,7 @@ class BaseTrader:
     @property
     def stop_limit_trigger_price(self) -> Decimal:
         if self.metadata and self.metadata.get('stop_limit_trigger_price') is not None:
-            return Decimal(self.metadata.get('stop_limit_trigger_price'))
+            return Decimal(self.metadata.get('stop_limit_trigger_price')).__round__(0)
 
         if self.action == Actions.LONG:
             return self.entry_price - self.stop_delta
