@@ -56,11 +56,12 @@ class BaseTrader:
     def tp_delta(self):
         # First Priority
         if self.tp_using_risk_reward_ratio and self.stop_limit_trigger_price != Decimal(0):
-            tp_stop_delta = abs(self.entry_price - self.stop_limit_trigger_price)
+            tp_stop_delta = Decimal(abs(self.entry_price - self.stop_limit_trigger_price))
+            tp_delta = Decimal(tp_stop_delta * self.risk_reward_ratio)
             if self.action == Actions.LONG:
-                return (tp_stop_delta * self.risk_reward_ratio + self.entry_price).__round__(0)
+                return (self.entry_price + tp_delta).__round__(0)
             elif self.action == Actions.SHORT:
-                return (tp_stop_delta * self.risk_reward_ratio - self.entry_price).__round__(0)
+                return (self.entry_price - tp_delta).__round__(0)
 
         # Second Priority
         if self.metadata and self.metadata.get('tp_delta') is not None:
