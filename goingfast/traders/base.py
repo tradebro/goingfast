@@ -35,6 +35,17 @@ class BaseTrader:
         self.leverage = None
 
     @property
+    def tp_using_risk_reward_ratio(self):
+        return self.metadata and self.metadata.get('rr') is not None
+
+    @property
+    def risk_reward_ratio(self):
+        if self.tp_using_risk_reward_ratio:
+            return Decimal(self.metadata.get('rr'))
+
+        return None
+
+    @property
     def stop_delta(self):
         if self.metadata and self.metadata.get('stop_delta') is not None:
             return Decimal(self.metadata.get('stop_delta')).__round__(0)
@@ -43,9 +54,19 @@ class BaseTrader:
 
     @property
     def tp_delta(self):
+        # First Priority
+        if self.tp_using_risk_reward_ratio and self.stop_limit_trigger_price != Decimal(0):
+            tp_stop_delta = abs(self.entry_price - self.stop_limit_trigger_price)
+            if self.action == Actions.LONG:
+                return (tp_stop_delta * self.risk_reward_ratio + self.entry_price).__round__(0)
+            elif self.action == Actions.SHORT:
+                return (tp_stop_delta * self.risk_reward_ratio - self.entry_price).__round__(0)
+
+        # Second Priority
         if self.metadata and self.metadata.get('tp_delta') is not None:
             return Decimal(self.metadata.get('tp_delta')).__round__(0)
 
+        # Last Priority
         return TP_DELTA
 
     @property
