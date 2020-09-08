@@ -1,6 +1,7 @@
 from goingfast.traders.base import BaseTrader, Actions
 from logging import Logger
 from os import environ
+from decimal import Decimal
 
 LEVERAGE = int(environ.get('LEVERAGE'))
 
@@ -14,6 +15,20 @@ class BybitTrader(BaseTrader):
         super().__init__(action, quantity, logger, metadata)
 
         self.leverage = LEVERAGE
+
+    @property
+    def trailing_stop_trigger_price(self):
+        if self.metadata and self.metadata.get('trailing_stop_trigger_price'):
+            return Decimal(self.metadata.get('trailing_stop_trigger_price'))
+
+        return self.entry_price + Decimal(30)
+
+    @property
+    def trailing_stop_by(self):
+        if self.metadata and self.metadata.get('trailing_stop_by'):
+            return Decimal(self.metadata.get('trailing_stop_by'))
+
+        return None
 
     async def pre_entry(self):
         self.logger.debug('Got long entry command')
@@ -61,6 +76,13 @@ class BybitTrader(BaseTrader):
         self.logger.info(f'Successfully sent limit stop sell order for {self.quantity} contracts at trigger ' +
                          f'{self.stop_limit_trigger_price} selling at {self.stop_limit_price}')
 
+        use_trailing_stop = self.trailing_stop_by is not None
+        if use_trailing_stop:
+            self.logger.info('Trailing stop variables are set, going to send trailing stop order')
+            await self.trailing_stop(trail_by=self.trailing_stop_by,
+                                     activation_price=self.trailing_stop_trigger_price)
+            self.logger.debug('Trailing stop order sent')
+
     async def short_entry(self):
         await self.pre_entry()
 
@@ -85,6 +107,13 @@ class BybitTrader(BaseTrader):
                                                                      stop_action_price=self.stop_limit_price)
         self.logger.info(f'Successfully sent limit buy sell order for {self.quantity} contracts at trigger ' +
                          f'{self.stop_limit_trigger_price} selling at {self.stop_limit_price}')
+
+        use_trailing_stop = self.trailing_stop_by is not None
+        if use_trailing_stop:
+            self.logger.info('Trailing stop variables are set, going to send trailing stop order')
+            await self.trailing_stop(trail_by=self.trailing_stop_by,
+                                     activation_price=self.trailing_stop_trigger_price)
+            self.logger.debug('Trailing stop order sent')
 
     async def set_leverage(self, leverage: int):
         post_name = 'userPostLeverageSave'
@@ -173,6 +202,17 @@ class BybitTrader(BaseTrader):
                                            amount=amount,
                                            stop_price=stop_price,
                                            price=stop_action_price)
+
+    async def trailing_stop(self, trail_by, activation_price):
+        method_name = 'privateLinear_post_position_trading_stop'
+        method = getattr(self.client, method_name)
+        order = method(params={
+            'symbol': self.symbol,
+            'trailing_stop': trail_by,
+            'new_trailing_active': activation_price
+        })
+
+        return order
 
     async def has_position(self):
         method_name = 'private_get_position_list'

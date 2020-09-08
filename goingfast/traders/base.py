@@ -32,9 +32,21 @@ class BaseTrader:
         self.exit_stop_limit_order = dict()
         self.exit_stop_market_order = dict()
 
-        self.stop_delta = STOP_DELTA
-        self.tp_delta = TP_DELTA
         self.leverage = None
+
+    @property
+    def stop_delta(self):
+        if self.metadata and self.metadata.get('stop_delta') is not None:
+            return Decimal(self.metadata.get('stop_delta')).__round__(0)
+
+        return STOP_DELTA
+
+    @property
+    def tp_delta(self):
+        if self.metadata and self.metadata.get('tp_delta') is not None:
+            return Decimal(self.metadata.get('tp_delta')).__round__(0)
+
+        return TP_DELTA
 
     @property
     def entry_price(self) -> Decimal:
