@@ -29,9 +29,6 @@ class BitmexTrader(BaseTrader):
         self.logger.debug('Cancelling all orders')
         await self.cancel_all_orders()
 
-        self.logger.debug('Cancelling all stop orders')
-        await self.cancel_all_stop_orders()
-
         await self.set_leverage(leverage=self.leverage)
 
     async def long_entry(self):
