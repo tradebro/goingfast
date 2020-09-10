@@ -121,3 +121,10 @@ The closer the machine where you host the bot to TradingView and your exchange, 
 More about the reasoning for this bot's creation on my blog post below:
 
 [Building A Bitcoin Trading Bot With Sanic](https://bango29.com/building-a-bitcoin-trading-bot-with-sanic/)
+
+## Supported Exchanges
+
+The bot is written to support both spot and leveraged exchanges. However, at the moment of writing, only these exchanges are implemented.
+
+* Bybit
+* Bitmex
