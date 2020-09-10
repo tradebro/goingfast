@@ -21,7 +21,7 @@ class BybitTrader(BaseTrader):
         if self.metadata and self.metadata.get('trailing_stop_trigger_price'):
             return Decimal(self.metadata.get('trailing_stop_trigger_price'))
 
-        return self.entry_price + Decimal(30)
+        return self.entry_price + self.tp_delta
 
     @property
     def trailing_stop_by(self):
