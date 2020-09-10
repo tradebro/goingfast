@@ -9,6 +9,7 @@ from sanic.response import HTTPResponse, text
 
 from goingfast.traders.base import Actions, BaseTrader
 from goingfast.traders.bybit import BybitTrader
+from goingfast.traders.bitmex import BitmexTrader
 from goingfast.notifications.telegram import send_telegram_message
 
 APP_DEBUG = True if environ.get('APP_DEBUG') == '1' else False
@@ -55,7 +56,8 @@ async def trade(message):
     logger.debug(f'Trade direction is {action}')
 
     traders = {
-        'bybit': BybitTrader
+        'bybit': BybitTrader,
+        'bitmex': BitmexTrader
     }
     trader_class = traders.get(TRADER)
     if not trader_class:
