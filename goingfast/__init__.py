@@ -109,7 +109,7 @@ async def webhook_handler(request: Request) -> HTTPResponse:
         return ok_response()
 
     logger.debug('Message is valid, starting to trade in the background')
-    request.app.add_task(trade(message=message))
+    await request.app.add_task(trade(message=message))
 
     logger.debug('Sending response to client and closes connection')
     return ok_response()
