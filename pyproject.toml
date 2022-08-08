@@ -45,9 +45,36 @@ urllib3 = "1.26.11"
 uvloop = "0.16.0"
 websockets = "10.3"
 yarl = "1.7.2"
+pyfunctional = "^1.4.3"
+python-binance = "^1.0.16"
+numpy = "^1.23.1"
+TA-Lib = "^0.4.24"
+pyfiglet = "^0.8.post1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+skip-string-normalization = true
+skip-magic-trailing-comma = true
+exclude = '''
+    /(
+        \.git
+      | \.hg
+      | \.mypy_cache
+      | \.tox
+      | \.venv
+      | _build
+      | buck-out
+      | build
+      | dist
+      # The following are specific to Black, you probably don't want those.
+      | blib2to3
+      | tests/data
+    )/
+'''
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

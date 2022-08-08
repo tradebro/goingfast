@@ -47,7 +47,7 @@ async def send_telegram_message(trader: BaseTrader, tv_alert_message: dict):
         'quantity': str(trader.quantity),
         'entryprice': str(trader.entry_price),
         'stopprice': str(trader.stop_limit_trigger_price),
-        'tpprice': str(trader.tp_price)
+        'tpprice': str(trader.tp_price),
     }
 
     template = Template(TEMPLATE)
@@ -55,6 +55,4 @@ async def send_telegram_message(trader: BaseTrader, tv_alert_message: dict):
 
     # Send message
     bot = telepot.Bot(token=TELEGRAM_TOKEN)
-    bot.sendMessage(chat_id=TELEGRAM_CHAT_ID,
-                    text=message_html,
-                    parse_mode='HTML')
+    bot.sendMessage(chat_id=TELEGRAM_CHAT_ID, text=message_html, parse_mode='HTML')

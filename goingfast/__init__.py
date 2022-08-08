@@ -1,4 +1,6 @@
 import logging
+
+import pyfiglet
 import ujson
 from os import environ
 
@@ -8,6 +10,7 @@ from sanic.request import Request
 from sanic.response import HTTPResponse, text
 
 from goingfast.traders.base import Actions, BaseTrader
+from goingfast.traders.binancefutures import BinanceFutures
 from goingfast.traders.bybit import BybitTrader
 from goingfast.traders.bitmex import BitmexTrader
 from goingfast.notifications.telegram import send_telegram_message
@@ -21,13 +24,7 @@ CAPITAL_IN_USD = int(environ.get('CAPITAL_IN_USD'))
 
 
 def is_valid_message(message: dict) -> bool:
-    check = map(lambda x: x in message, [
-        'close',
-        'indicator',
-        'exchange',
-        'pair',
-        'action'
-    ])
+    check = map(lambda x: x in message, ['close', 'indicator', 'exchange', 'pair', 'action'])
 
     return not (False in check)
 
@@ -37,16 +34,16 @@ def ok_response():
 
 
 def show_config(trader: BaseTrader):
-    logger.debug('---------------------------------')
-    logger.debug('GoingFast Config')
-    logger.debug('---------------------------------')
+    title = pyfiglet.figlet_format('GoingFast')
+    print(title)
+
     logger.debug(f'Trader: {trader.__name__.capitalize()}')
     logger.debug(f'Direction: {trader.action}')
     logger.debug(f'Quantity: {trader.quantity}')
     logger.debug(f'Stop Delta: {trader.stop_delta}')
     logger.debug(f'TP Delta: {trader.tp_delta}')
     logger.debug(f'Leverage: {trader.leverage}')
-    logger.debug('---------------------------------')
+    logger.debug('\n---------------------------------\n')
 
 
 async def trade(message):
@@ -55,10 +52,7 @@ async def trade(message):
         raise NotImplementedError(f'Only Long and Short actions are supported, sent is: {action}')
     logger.debug(f'Trade direction is {action}')
 
-    traders = {
-        'bybit': BybitTrader,
-        'bitmex': BitmexTrader
-    }
+    traders = {'bybit': BybitTrader, 'bitmex': BitmexTrader, 'binance-futures': BinanceFutures}
     trader_class = traders.get(TRADER)
     if not trader_class:
         raise NotImplementedError('Trader chosen is not implemented yet')
@@ -67,10 +61,12 @@ async def trade(message):
     metadata = message.get('metadata')
 
     try:
-        trader = trader_class(action=Actions.LONG if action == 'long' else Actions.SHORT,
-                              quantity=CAPITAL_IN_USD,
-                              logger=logger,
-                              metadata=metadata)
+        trader = trader_class(
+            action=Actions.LONG if action == 'long' else Actions.SHORT,
+            quantity=CAPITAL_IN_USD,
+            logger=logger,
+            metadata=metadata,
+        )
     except NotImplementedError as e:
         logger.error(f'Exchange does not support the action: {action}')
         raise e
@@ -88,8 +84,7 @@ async def trade(message):
 
     # Send Notification
     logger.debug('Sending notifications via Telegram')
-    await send_telegram_message(trader=trader,
-                                tv_alert_message=message)
+    await send_telegram_message(trader=trader, tv_alert_message=message)
 
 
 async def webhook_handler(request: Request) -> HTTPResponse:

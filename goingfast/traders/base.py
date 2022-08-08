@@ -121,12 +121,7 @@ class BaseTrader:
         if not exc_class:
             raise NotImplementedError('This exchange is not implemented yet')
 
-        return exc_class({
-            'apiKey': API_KEY,
-            'secret': API_SECRET,
-            'timeout': 30000,
-            'enableRateLimit': True,
-        })
+        return exc_class({'apiKey': API_KEY, 'secret': API_SECRET, 'timeout': 30000, 'enableRateLimit': True})
 
     @abstractmethod
     async def long_entry(self):
@@ -147,27 +142,21 @@ class BaseTrader:
     async def market_buy_order(self, quantity):
         if not self.client.has['createMarketOrder']:
             raise AttributeError('The selected exchange does not support market orders')
-        order = self.client.create_market_buy_order(symbol=self.normalized_symbol,
-                                                    amount=quantity)
+        order = self.client.create_market_buy_order(symbol=self.normalized_symbol, amount=quantity)
         return order
 
     async def market_sell_order(self, quantity):
         if not self.client.has['createMarketOrder']:
             raise AttributeError('The selected exchange does not support market orders')
-        order = self.client.create_market_sell_order(symbol=self.normalized_symbol,
-                                                     amount=quantity)
+        order = self.client.create_market_sell_order(symbol=self.normalized_symbol, amount=quantity)
         return order
 
     async def limit_buy_order(self, amount, price):
-        order = self.client.create_limit_buy_order(self.normalized_symbol,
-                                                   amount,
-                                                   price)
+        order = self.client.create_limit_buy_order(self.normalized_symbol, amount, price)
         return order
 
     async def limit_sell_order(self, amount, price):
-        order = self.client.create_limit_sell_order(self.normalized_symbol,
-                                                    amount,
-                                                    price)
+        order = self.client.create_limit_sell_order(self.normalized_symbol, amount, price)
         return order
 
     @staticmethod

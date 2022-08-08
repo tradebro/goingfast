@@ -1,10 +1,12 @@
-FROM python:3.8-slim
+FROM python:3.10
 
 # app workdir
 WORKDIR /app
 
 # copy app dependencies
-COPY requirements.txt docker/*.sh ./
+COPY pyproject.toml ./
+COPY poetry.lock ./
+COPY docker/*.sh ./
 
 # install dependecies
 RUN set -ex \
@@ -14,8 +16,8 @@ RUN set -ex \
 	\
     # install app dependencies
     && rm -rf /var/lib/apt/lists/* \
-    && pip install --upgrade pip \
-    && pip install -r ./requirements.txt --upgrade \
+    && pip install poetry \
+    && poetry install \
     \
     # clean pip cache
     && rm -rf /root/.cache/pip/* \
@@ -27,6 +29,5 @@ RUN set -ex \
 COPY . ./
 
 # Default runtime configs
-EXPOSE 8080
 ENTRYPOINT ["./start.sh"]
 CMD ["run"]

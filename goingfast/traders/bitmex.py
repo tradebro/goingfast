@@ -46,19 +46,22 @@ class BitmexTrader(BaseTrader):
         self.logger.debug('Got exit from long entry command')
 
         self.logger.debug('Going to send limit sell order')
-        self.exit_order = await self.limit_sell_order(amount=self.quantity,
-                                                      price=self.tp_price)
-        self.logger.info(f'Sucessfully sent limit sell order for {self.quantity} contracts ' +
-                         f'at {self.tp_price} with order id: {self.exit_order.get("id")}')
+        self.exit_order = await self.limit_sell_order(amount=self.quantity, price=self.tp_price)
+        self.logger.info(
+            f'Sucessfully sent limit sell order for {self.quantity} contracts '
+            + f'at {self.tp_price} with order id: {self.exit_order.get("id")}'
+        )
 
         self.logger.debug('Going to send stop limit sell order')
-        self.exit_stop_limit_order = await self.limit_stop_sell_order(amount=self.quantity,
-                                                                      stop_price=self.format_number(
-                                                                          number=self.stop_limit_trigger_price,
-                                                                          precision=0),
-                                                                      stop_action_price=self.stop_limit_price)
-        self.logger.info(f'Successfully sent limit stop sell order for {self.quantity} contracts at trigger ' +
-                         f'{self.stop_limit_trigger_price} selling at {self.stop_limit_price}')
+        self.exit_stop_limit_order = await self.limit_stop_sell_order(
+            amount=self.quantity,
+            stop_price=self.format_number(number=self.stop_limit_trigger_price, precision=0),
+            stop_action_price=self.stop_limit_price,
+        )
+        self.logger.info(
+            f'Successfully sent limit stop sell order for {self.quantity} contracts at trigger '
+            + f'{self.stop_limit_trigger_price} selling at {self.stop_limit_price}'
+        )
 
     async def short_entry(self):
         await self.pre_entry()
@@ -73,17 +76,20 @@ class BitmexTrader(BaseTrader):
         self.logger.debug('Got exit from short entry command')
 
         self.logger.debug('Going to send limit buy order')
-        self.exit_order = await self.limit_buy_order(amount=self.quantity,
-                                                     price=str(self.tp_price))
-        self.logger.info(f'Sucessfully sent limit buy order for {self.quantity} contracts ' +
-                         f'at {self.tp_price} with order id: {self.exit_order.get("id")}')
+        self.exit_order = await self.limit_buy_order(amount=self.quantity, price=str(self.tp_price))
+        self.logger.info(
+            f'Sucessfully sent limit buy order for {self.quantity} contracts '
+            + f'at {self.tp_price} with order id: {self.exit_order.get("id")}'
+        )
 
         self.logger.debug('Going to send stop limit buy order')
-        self.exit_stop_limit_order = await self.limit_stop_buy_order(amount=self.quantity,
-                                                                     stop_price=self.stop_limit_trigger_price,
-                                                                     stop_action_price=self.stop_limit_price)
-        self.logger.info(f'Successfully sent limit buy sell order for {self.quantity} contracts at trigger ' +
-                         f'{self.stop_limit_trigger_price} selling at {self.stop_limit_price}')
+        self.exit_stop_limit_order = await self.limit_stop_buy_order(
+            amount=self.quantity, stop_price=self.stop_limit_trigger_price, stop_action_price=self.stop_limit_price
+        )
+        self.logger.info(
+            f'Successfully sent limit buy sell order for {self.quantity} contracts at trigger '
+            + f'{self.stop_limit_trigger_price} selling at {self.stop_limit_price}'
+        )
 
     async def set_leverage(self, leverage: int):
         post_name = 'privatePostPositionLeverage'
@@ -91,10 +97,7 @@ class BitmexTrader(BaseTrader):
         # Set Leverage
         self.logger.debug(f'Setting leverage to {self.leverage}x')
         method = getattr(self.client, post_name)
-        response = method(params={
-            'symbol': self.symbol,
-            'leverage': leverage,
-        })
+        response = method(params={'symbol': self.symbol, 'leverage': leverage})
         if response.get('ret_code') != 0 or response.get('ret_msg') != 'ok':
             raise AssertionError('Got error message while setting leverage')
 
@@ -104,134 +107,112 @@ class BitmexTrader(BaseTrader):
         method_name = 'privatePostOrder'
 
         method = getattr(self.client, method_name)
-        order = method(params={
-            'side': side,
-            'symbol': self.symbol,
-            'ordType': 'Limit',
-            'orderQty': str(amount),
-            'price': str(price),
-            'timeInForce': 'GoodTillCancel',
-            'execInst': 'ReduceOnly' if reduce_only else 'LastPrice'
-        })
-        order.update({
-            'id': order.get('orderID')
-        })
+        order = method(
+            params={
+                'side': side,
+                'symbol': self.symbol,
+                'ordType': 'Limit',
+                'orderQty': str(amount),
+                'price': str(price),
+                'timeInForce': 'GoodTillCancel',
+                'execInst': 'ReduceOnly' if reduce_only else 'LastPrice',
+            }
+        )
+        order.update({'id': order.get('orderID')})
 
         return order
 
     async def limit_buy_order(self, amount, price):
-        return await self.limit_order(side='Buy',
-                                      amount=amount,
-                                      price=price)
+        return await self.limit_order(side='Buy', amount=amount, price=price)
 
     async def limit_sell_order(self, amount, price):
-        return await self.limit_order(side='Sell',
-                                      amount=amount,
-                                      price=price)
+        return await self.limit_order(side='Sell', amount=amount, price=price)
 
     async def limit_stop_order(self, side, amount, stop_price, price):
         method_name = 'privatePostOrder'
 
         method = getattr(self.client, method_name)
-        order = method(params={
-            'side': side,
-            'symbol': self.symbol,
-            'ordType': 'StopLimit',
-            'orderQty': str(amount),
-            'price': str(price),
-            'stopPx': stop_price,
-            'timeInForce': 'GoodTillCancel',
-            'execInst': 'ReduceOnly'
-        })
-        order.update({
-            'id': order.get('orderID')
-        })
+        order = method(
+            params={
+                'side': side,
+                'symbol': self.symbol,
+                'ordType': 'StopLimit',
+                'orderQty': str(amount),
+                'price': str(price),
+                'stopPx': stop_price,
+                'timeInForce': 'GoodTillCancel',
+                'execInst': 'ReduceOnly',
+            }
+        )
+        order.update({'id': order.get('orderID')})
 
         return order
 
     async def limit_stop_sell_order(self, amount, stop_price, stop_action_price):
-        return await self.limit_stop_order(side='Sell',
-                                           amount=amount,
-                                           stop_price=stop_price,
-                                           price=stop_action_price)
+        return await self.limit_stop_order(side='Sell', amount=amount, stop_price=stop_price, price=stop_action_price)
 
     async def limit_stop_buy_order(self, amount, stop_price, stop_action_price):
-        return await self.limit_stop_order(side='Buy',
-                                           amount=amount,
-                                           stop_price=stop_price,
-                                           price=stop_action_price)
+        return await self.limit_stop_order(side='Buy', amount=amount, stop_price=stop_price, price=stop_action_price)
 
     async def market_stop_order(self, side, amount, stop_price):
         method_name = 'privatePostOrder'
 
         method = getattr(self.client, method_name)
-        order = method(params={
-            'side': side,
-            'symbol': self.symbol,
-            'ordType': 'Stop',
-            'orderQty': str(amount),
-            'stopPx': stop_price,
-            'timeInForce': 'GoodTillCancel',
-            'execInst': 'ReduceOnly'
-        })
-        order.update({
-            'id': order.get('orderID')
-        })
+        order = method(
+            params={
+                'side': side,
+                'symbol': self.symbol,
+                'ordType': 'Stop',
+                'orderQty': str(amount),
+                'stopPx': stop_price,
+                'timeInForce': 'GoodTillCancel',
+                'execInst': 'ReduceOnly',
+            }
+        )
+        order.update({'id': order.get('orderID')})
 
         return order
 
     async def market_stop_buy_order(self, quantity, stop_price):
-        return await self.market_stop_order(side='Buy',
-                                            amount=quantity,
-                                            stop_price=stop_price)
+        return await self.market_stop_order(side='Buy', amount=quantity, stop_price=stop_price)
 
     async def market_stop_sell_order(self, quantity, stop_price):
-        return await self.market_stop_order(side='Sell',
-                                            amount=quantity,
-                                            stop_price=stop_price)
+        return await self.market_stop_order(side='Sell', amount=quantity, stop_price=stop_price)
 
     async def trailing_stop(self, side, trail_by, quantity):
         method_name = 'privatePostOrder'
         trail_by = Decimal(trail_by) if side == 'Sell' else Decimal(-1) * Decimal(trail_by)
 
         method = getattr(self.client, method_name)
-        order = method(params={
-            'side': side,
-            'symbol': self.symbol,
-            'ordType': 'MarketIfTouched',
-            'pegPriceType': 'TrailingStopPeg',
-            'pegOffsetValue': trail_by,
-            'orderQty': quantity,
-            'execInst': 'LastPrice'
-        })
-        order.update({
-            'id': order.get('orderID')
-        })
+        order = method(
+            params={
+                'side': side,
+                'symbol': self.symbol,
+                'ordType': 'MarketIfTouched',
+                'pegPriceType': 'TrailingStopPeg',
+                'pegOffsetValue': trail_by,
+                'orderQty': quantity,
+                'execInst': 'LastPrice',
+            }
+        )
+        order.update({'id': order.get('orderID')})
 
         return order
 
     async def trailing_stop_buy(self, trail_by, quantity):
-        return await self.trailing_stop(side='Buy',
-                                        trail_by=trail_by,
-                                        quantity=quantity)
+        return await self.trailing_stop(side='Buy', trail_by=trail_by, quantity=quantity)
 
     async def trailing_stop_sell(self, trail_by, quantity):
-        return await self.trailing_stop(side='Sell',
-                                        trail_by=trail_by,
-                                        quantity=quantity)
+        return await self.trailing_stop(side='Sell', trail_by=trail_by, quantity=quantity)
 
     async def has_position(self):
         method_name = 'privateGetPosition'
         method = getattr(self.client, method_name)
-        response = method(params={
-            'filter': ujson.dumps({'filter': self.symbol})
-        })
+        response = method(params={'filter': ujson.dumps({'filter': self.symbol})})
 
         return len(response) == 0
 
     async def cancel_all_orders(self):
         method_name = 'privateDeleteOrderAll'
         method = getattr(self.client, method_name)
-        method(params={
-            'symbol': self.symbol
-        })
+        method(params={'symbol': self.symbol})
