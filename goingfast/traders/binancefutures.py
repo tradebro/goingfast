@@ -32,13 +32,15 @@ class BinanceFutures(BaseTrader):
         logger: Logger,
         symbol: str = 'BTCUSDT',
         metadata: dict = None,
-        precision: int = 1,
+        price_precision: int = 1,
+        qty_precision: int = 1,
         leverage: int = 100,
     ):
         super().__init__(action, quantity, logger, metadata)
 
         self.symbol = symbol
-        self.precision = precision
+        self.price_precision = price_precision
+        self.qty_precision = qty_precision
         self.leverage = leverage
         self.binance_client = get_binance_client()
 
@@ -73,17 +75,17 @@ class BinanceFutures(BaseTrader):
     @property
     def stop_price(self) -> str | None:
         if self.action == Actions.LONG:
-            return self.format_number(number=self.last_price - self.minimum_atr_value, precision=self.precision)
+            return self.format_number(number=self.last_price - self.minimum_atr_value, precision=self.price_precision)
         elif self.action == Actions.SHORT:
-            return self.format_number(number=self.last_price + self.minimum_atr_value, precision=self.precision)
+            return self.format_number(number=self.last_price + self.minimum_atr_value, precision=self.price_precision)
         return None
 
     @property
     def tp_price(self) -> str | None:
         if self.action == Actions.LONG:
-            return self.format_number(number=self.last_price + self.minimum_atr_value, precision=self.precision)
+            return self.format_number(number=self.last_price + self.minimum_atr_value, precision=self.price_precision)
         elif self.action == Actions.SHORT:
-            return self.format_number(number=self.last_price - self.minimum_atr_value, precision=self.precision)
+            return self.format_number(number=self.last_price - self.minimum_atr_value, precision=self.price_precision)
         return None
 
     @property
@@ -139,7 +141,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_BUY,
             type=FUTURE_ORDER_TYPE_MARKET,
-            quantity=self.quantity,
+            quantity=self.format_number(self.quantity, precision=self.qty_precision),
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
         self.logger.info(f'{self.__name__} - {self.action} - Entry Order ID: {self.entry_order_id}')
@@ -153,7 +155,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_SELL,
             type=FUTURE_ORDER_TYPE_STOP_MARKET,
-            quantity=self.entry_executed_qty,
+            quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
             stopPrice=self.stop_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
@@ -164,7 +166,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_SELL,
             type=FUTURE_ORDER_TYPE_LIMIT,
-            quantity=self.entry_executed_qty,
+            quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
             price=self.tp_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
@@ -178,7 +180,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_SELL,
             type=FUTURE_ORDER_TYPE_MARKET,
-            quantity=self.quantity,
+            quantity=self.format_number(self.quantity, precision=self.qty_precision),
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
         self.logger.info(f'{self.__name__} - {self.action} - Entry Order ID: {self.entry_order_id}')
@@ -192,7 +194,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_BUY,
             type=FUTURE_ORDER_TYPE_STOP_MARKET,
-            quantity=self.entry_executed_qty,
+            quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
             stopPrice=self.stop_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
@@ -203,7 +205,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_BUY,
             type=FUTURE_ORDER_TYPE_LIMIT,
-            quantity=self.entry_executed_qty,
+            quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
             price=self.tp_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )

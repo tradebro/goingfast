@@ -98,6 +98,10 @@ class BaseTrader:
             return Decimal(0)
 
     @property
+    def stop_price(self) -> Decimal | None:
+        return None
+
+    @property
     def stop_market_price(self) -> Decimal:
         if self.action == Actions.LONG:
             return self.stop_limit_trigger_price - Decimal(10)

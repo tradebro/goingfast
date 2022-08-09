@@ -37,6 +37,8 @@ async def send_telegram_message(trader: BaseTrader, tv_alert_message: dict):
         logger.error('Required env var TELEGRAM_CHAT_ID must be set')
         return
 
+    stop_price = trader.stop_limit_trigger_price if not trader.stop_price else trader.stop_price
+
     values = {
         'action': tv_alert_message.get('action'),
         'indicator': tv_alert_message.get('indicator'),
@@ -46,7 +48,7 @@ async def send_telegram_message(trader: BaseTrader, tv_alert_message: dict):
         'trader': trader.__name__.capitalize(),
         'quantity': str(trader.quantity),
         'entryprice': str(trader.entry_price),
-        'stopprice': str(trader.stop_limit_trigger_price),
+        'stopprice': str(stop_price),
         'tpprice': str(trader.tp_price),
     }
 
