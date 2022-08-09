@@ -1,3 +1,4 @@
+from os import environ
 from typing import List
 
 import binance
@@ -6,9 +7,13 @@ from functional import seq
 from talib import ATR
 import numpy as np
 
+API_KEY = environ.get('API_KEY')
+API_SECRET = environ.get('API_SECRET')
+IS_TESTNET = True if environ.get('IS_TESTNET') == '1' else False
+
 
 def get_binance_client(
-    api_key: str | None = None, api_secret: str | None = None, is_testnet: bool = False
+    api_key: str = API_KEY, api_secret: str = API_SECRET, is_testnet: bool = IS_TESTNET
 ) -> binance.AsyncClient:
     """
     Get a Binance client

@@ -9,7 +9,6 @@ from binance.enums import (
     SIDE_SELL,
     FUTURE_ORDER_TYPE_MARKET,
     ORDER_RESP_TYPE_RESULT,
-    FUTURE_ORDER_TYPE_STOP,
     FUTURE_ORDER_TYPE_STOP_MARKET,
     FUTURE_ORDER_TYPE_LIMIT,
 )
@@ -30,8 +29,8 @@ class BinanceFutures(BaseTrader):
         action: Actions,
         quantity: int,
         logger: Logger,
-        symbol: str = 'BTCUSDT',
         metadata: dict = None,
+        symbol: str = 'BTCUSDT',
         price_precision: int = 1,
         qty_precision: int = 1,
         leverage: int = 100,
