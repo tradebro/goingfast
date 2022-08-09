@@ -12,6 +12,7 @@ from binance.enums import (
     FUTURE_ORDER_TYPE_STOP_MARKET,
     FUTURE_ORDER_TYPE_LIMIT,
 )
+from binance.exceptions import BinanceAPIException
 from functional import seq
 
 from goingfast import BaseTrader, Actions
@@ -144,8 +145,13 @@ class BinanceFutures(BaseTrader):
             raise exc
 
         # Set Leverage
-        await self.binance_client.futures_change_margin_type(symbol=self.symbol, marginType='CROSSED')
-        await self.binance_client.futures_change_leverage(symbol=self.symbol, leverage=self.leverage)
+        try:
+            await self.binance_client.futures_change_margin_type(symbol=self.symbol, marginType='CROSSED')
+            await self.binance_client.futures_change_leverage(symbol=self.symbol, leverage=self.leverage)
+        except BinanceAPIException:
+            self.logger.info(
+                f'{self.__name__} - {self.action} - Margin is already CROSSED and leverage is {self.leverage}'
+            )
 
         self.logger.info(f'{self.__name__} - {self.action} - Pre-entry passed, ready to trade')
 
