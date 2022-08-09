@@ -128,6 +128,10 @@ class BinanceFutures(BaseTrader):
         self.logger.info(f'{self.__name__} - {self.action} - ATR: {self.atr}')
         self.logger.info(f'{self.__name__} - {self.action} - Minimum ATR Value: {self.minimum_atr_value}')
 
+        # Check if there's an open position
+        orders = await self.binance_client.futures_position_information(symbol=self.symbol)
+
+        assert len(orders) == 0, f'{self.__name__} - {self.action} - There is an open position, bailed out..'
         assert self.atr[-1] > self.minimum_atr_value, f'{self.__name__} - {self.action} - ATR is too small'
 
         # Set Leverage

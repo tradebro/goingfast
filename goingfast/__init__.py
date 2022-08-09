@@ -78,7 +78,8 @@ async def trade(message):
             await trader.long_entry()
         elif trader.action == Actions.SHORT:
             await trader.short_entry()
-    except AssertionError:
+    except AssertionError as exc:
+        logger.info(exc.args[0])
         logger.debug('There was no entry, bailing')
         return
 
