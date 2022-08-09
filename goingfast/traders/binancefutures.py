@@ -54,6 +54,10 @@ class BinanceFutures(BaseTrader):
         # Misc
         self.stop_order = None
 
+    def __del__(self):
+        if self.binance_client is not None:
+            self.binance_client.close_connection()
+
     @property
     def minimum_atr_value(self) -> float:
         if MINIMUM_ATR_VALUE:
@@ -129,7 +133,7 @@ class BinanceFutures(BaseTrader):
         self.logger.info(f'{self.__name__} - {self.action} - Last Price: {self.last_price}')
         self.logger.info(f'{self.__name__} - {self.action} - Stop Price: {self.stop_price}')
         self.logger.info(f'{self.__name__} - {self.action} - TP Price: {self.tp_price}')
-        self.logger.info(f'{self.__name__} - {self.action} - ATR: {self.atr}')
+        self.logger.info(f'{self.__name__} - {self.action} - ATR: {self.atr[-1]}')
         self.logger.info(f'{self.__name__} - {self.action} - Minimum ATR Value: {self.minimum_atr_value}')
 
         # Check if there's an open position
