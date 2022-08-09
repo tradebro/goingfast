@@ -138,6 +138,7 @@ class BinanceFutures(BaseTrader):
 
         # Check if there's an open position
         orders = await self.binance_client.futures_position_information(symbol=self.symbol)
+        print(orders)
 
         assert len(orders) == 0, f'{self.__name__} - {self.action} - There is an open position, bailed out..'
         assert self.atr[-1] > self.minimum_atr_value, f'{self.__name__} - {self.action} - ATR is too small'
