@@ -54,10 +54,6 @@ class BinanceFutures(BaseTrader):
         # Misc
         self.stop_order = None
 
-    def __del__(self):
-        if self.binance_client is not None:
-            self.binance_client.close_connection()
-
     @property
     def minimum_atr_value(self) -> float:
         if MINIMUM_ATR_VALUE:
@@ -140,8 +136,12 @@ class BinanceFutures(BaseTrader):
         orders = await self.binance_client.futures_get_open_orders(symbol=self.symbol)
         print(orders)
 
-        assert len(orders) == 0, f'{self.__name__} - {self.action} - There is an open position, bailed out..'
-        assert self.atr[-1] > self.minimum_atr_value, f'{self.__name__} - {self.action} - ATR is too small'
+        try:
+            assert len(orders) == 0, f'{self.__name__} - {self.action} - There is an open position, bailed out..'
+            assert self.atr[-1] > self.minimum_atr_value, f'{self.__name__} - {self.action} - ATR is too small'
+        except AssertionError as exc:
+            await self.binance_client.close_connection()
+            raise exc
 
         # Set Leverage
         await self.binance_client.futures_change_margin_type(symbol=self.symbol, marginType='CROSSED')
@@ -188,6 +188,8 @@ class BinanceFutures(BaseTrader):
         )
         self.logger.info(f'{self.__name__} - {self.action} - Exit Order ID: {self.exit_order_id}')
 
+        await self.binance_client.close_connection()
+
     async def short_entry(self):
         await self.pre_entry()
 
@@ -226,3 +228,5 @@ class BinanceFutures(BaseTrader):
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
         self.logger.info(f'{self.__name__} - {self.action} - Exit Order ID: {self.exit_order_id}')
+
+        await self.binance_client.close_connection()
