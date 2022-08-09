@@ -41,25 +41,15 @@ class BinanceFutures(BaseTrader):
     ):
         super().__init__(action, quantity, logger, metadata)
 
+        self.last_price = None
+        self.atr = None
+        self.hl2 = None
+        self.ohlcv = None
         self.symbol = symbol
         self.price_precision = price_precision
         self.qty_precision = qty_precision
         self.leverage = leverage
         self.binance_client = get_binance_client()
-
-        # Get Candles
-        self.ohlcv, self.hl2 = await get_candles(
-            client=self.binance_client, symbol=self.symbol, timeframe=KLINE_INTERVAL_5MINUTE
-        )
-
-        # ATR
-        highs = np.array(seq(self.ohlcv).map(lambda x: x[1]).to_list())
-        lows = np.array(seq(self.ohlcv).map(lambda x: x[2]).to_list())
-        closes = np.array(seq(self.ohlcv).map(lambda x: x[3]).to_list())
-        self.atr = atr(highs=highs, lows=lows, closes=closes, period=14)
-
-        # Last Price
-        self.last_price = closes[-1]
 
         # Misc
         self.stop_order = None
@@ -118,6 +108,20 @@ class BinanceFutures(BaseTrader):
     async def pre_entry(self):
         title = pyfiglet.figlet_format(f'{self.__name__.title()}')
         print(title)
+
+        # Get Candles
+        self.ohlcv, self.hl2 = await get_candles(
+            client=self.binance_client, symbol=self.symbol, timeframe=KLINE_INTERVAL_5MINUTE
+        )
+
+        # ATR
+        highs = np.array(seq(self.ohlcv).map(lambda x: x[1]).to_list())
+        lows = np.array(seq(self.ohlcv).map(lambda x: x[2]).to_list())
+        closes = np.array(seq(self.ohlcv).map(lambda x: x[3]).to_list())
+        self.atr = atr(highs=highs, lows=lows, closes=closes, period=14)
+
+        # Last Price
+        self.last_price = closes[-1]
 
         self.logger.info(f'{self.__name__} - {self.action} - Initializing..')
         self.logger.info(f'{self.__name__} - {self.action} - Symbol: {self.symbol}')
