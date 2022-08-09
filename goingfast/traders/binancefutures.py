@@ -22,7 +22,7 @@ MINIMUM_ATR_VALUE = environ.get('MINIMUM_ATR_VALUE')
 MINIMUM_ATR_IN_PERCENT = environ.get('MINIMUM_ATR_IN_PERCENT')
 SYMBOL = environ.get('SYMBOL', 'BTCUSDT')
 PRICE_PRECISION = int(environ.get('PRICE_PRECISION', '1'))
-QTY_PRECISION = int(environ.get('QTY_PRECISION', '1'))
+QTY_PRECISION = int(environ.get('QTY_PRECISION', '3'))
 LEVERAGE = int(environ.get('LEVERAGE', '100'))
 
 
@@ -54,6 +54,11 @@ class BinanceFutures(BaseTrader):
 
         # Misc
         self.stop_order = None
+
+    @property
+    def quantity_in_asset(self) -> str:
+        q = self.quantity / self.last_price
+        return self.format_number(q, precision=self.qty_precision)
 
     @property
     def minimum_atr_value(self) -> float:
@@ -163,7 +168,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_BUY,
             type=FUTURE_ORDER_TYPE_MARKET,
-            quantity=self.format_number(self.quantity, precision=self.qty_precision),
+            quantity=self.quantity_in_asset,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
         self.logger.info(f'{self.__name__} - {self.action} - Entry Order ID: {self.entry_order_id}')
