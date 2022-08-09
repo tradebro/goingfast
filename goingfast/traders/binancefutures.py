@@ -19,6 +19,10 @@ from goingfast.traders.helpers import get_candles, get_binance_client, atr
 
 MINIMUM_ATR_VALUE = environ.get('MINIMUM_ATR_VALUE')
 MINIMUM_ATR_IN_PERCENT = environ.get('MINIMUM_ATR_IN_PERCENT')
+SYMBOL = environ.get('SYMBOL', 'BTCUSDT')
+PRICE_PRECISION = int(environ.get('PRICE_PRECISION', '1'))
+QTY_PRECISION = int(environ.get('QTY_PRECISION', '1'))
+LEVERAGE = int(environ.get('LEVERAGE', '100'))
 
 
 class BinanceFutures(BaseTrader):
@@ -30,10 +34,10 @@ class BinanceFutures(BaseTrader):
         quantity: int,
         logger: Logger,
         metadata: dict = None,
-        symbol: str = 'BTCUSDT',
-        price_precision: int = 1,
-        qty_precision: int = 1,
-        leverage: int = 100,
+        symbol: str = SYMBOL,
+        price_precision: int = PRICE_PRECISION,
+        qty_precision: int = QTY_PRECISION,
+        leverage: int = LEVERAGE,
     ):
         super().__init__(action, quantity, logger, metadata)
 
