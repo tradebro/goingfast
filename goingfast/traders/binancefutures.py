@@ -132,6 +132,7 @@ class BinanceFutures(BaseTrader):
         self.logger.info(f'{self.__name__} - {self.action} - Initializing..')
         self.logger.info(f'{self.__name__} - {self.action} - Symbol: {self.symbol}')
         self.logger.info(f'{self.__name__} - {self.action} - Quantity: {self.quantity}')
+        self.logger.info(f'{self.__name__} - {self.action} - Quantity (Asset): {self.quantity_in_asset}')
         self.logger.info(f'{self.__name__} - {self.action} - Last Price: {self.last_price}')
         self.logger.info(f'{self.__name__} - {self.action} - Stop Price: {self.stop_price}')
         self.logger.info(f'{self.__name__} - {self.action} - TP Price: {self.tp_price}')
