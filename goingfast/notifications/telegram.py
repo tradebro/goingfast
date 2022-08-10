@@ -27,6 +27,23 @@ TP Price: $tpprice
 
 Written with 💚
 <a href="https://github.com/tradebro">TradeBro</a>'''
+TEMPLATE_EXIT = '''<b>GoingFast</b>
+
+A trade has been exited. Details below.
+
+Direction: <b>$action</b>
+
+Trader: <b>$trader</b>
+
+Quantity: $quantity
+Entry Price: $entryprice
+Stop Price: $stopprice
+TP Price: $tpprice
+
+P&L: $pnl
+
+Written with 💚
+<a href="https://github.com/tradebro">TradeBro</a>'''
 
 
 async def send_telegram_message(trader: BaseTrader, tv_alert_message: dict):
@@ -50,6 +67,36 @@ async def send_telegram_message(trader: BaseTrader, tv_alert_message: dict):
         'entryprice': str(trader.entry_price),
         'stopprice': str(stop_price),
         'tpprice': str(trader.tp_price),
+    }
+
+    template = Template(TEMPLATE)
+    message_html = template.substitute(values)
+
+    # Send message
+    bot = telepot.Bot(token=TELEGRAM_TOKEN)
+    bot.sendMessage(chat_id=TELEGRAM_CHAT_ID, text=message_html, parse_mode='HTML')
+
+
+async def send_exit_message(
+    action: str, trader: BaseTrader, quantity: str, entry_price: str, tp_price: str, stop_price: str, pnl: str
+):
+    if not TELEGRAM_TOKEN:
+        logger.error('Required env var TELEGRAM_TOKEN must be set')
+        return
+    if not TELEGRAM_CHAT_ID:
+        logger.error('Required env var TELEGRAM_CHAT_ID must be set')
+        return
+
+    stop_price = trader.stop_limit_trigger_price if not trader.stop_price else trader.stop_price
+
+    values = {
+        'action': action,
+        'trader': trader.__name__.capitalize(),
+        'quantity': quantity,
+        'entryprice': entry_price,
+        'stopprice': stop_price,
+        'tpprice': tp_price,
+        'pnl': pnl,
     }
 
     template = Template(TEMPLATE)

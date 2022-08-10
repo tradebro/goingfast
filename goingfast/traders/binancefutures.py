@@ -1,3 +1,4 @@
+import asyncio
 from logging import Logger
 from os import environ
 
@@ -8,14 +9,19 @@ from binance.enums import (
     SIDE_BUY,
     SIDE_SELL,
     FUTURE_ORDER_TYPE_MARKET,
-    ORDER_RESP_TYPE_RESULT,
     FUTURE_ORDER_TYPE_STOP_MARKET,
-    FUTURE_ORDER_TYPE_LIMIT, TIME_IN_FORCE_GTC,
+    FUTURE_ORDER_TYPE_LIMIT,
+    ORDER_RESP_TYPE_RESULT,
+    ORDER_STATUS_FILLED,
+    ORDER_STATUS_CANCELED,
+    ORDER_STATUS_REJECTED,
+    TIME_IN_FORCE_GTC,
 )
 from binance.exceptions import BinanceAPIException
 from functional import seq
 
 from goingfast import BaseTrader, Actions
+from goingfast.notifications.telegram import send_exit_message
 from goingfast.traders.helpers import get_candles, get_binance_client, atr
 
 MINIMUM_ATR_VALUE = environ.get('MINIMUM_ATR_VALUE')
@@ -24,6 +30,8 @@ SYMBOL = environ.get('SYMBOL', 'BTCUSDT')
 PRICE_PRECISION = int(environ.get('PRICE_PRECISION', '1'))
 QTY_PRECISION = int(environ.get('QTY_PRECISION', '3'))
 LEVERAGE = int(environ.get('LEVERAGE', '100'))
+
+FINAL_ORDER_STATUSES = [ORDER_STATUS_FILLED, ORDER_STATUS_CANCELED, ORDER_STATUS_REJECTED]
 
 
 class BinanceFutures(BaseTrader):
@@ -201,7 +209,7 @@ class BinanceFutures(BaseTrader):
         )
         self.logger.info(f'{self.__name__} - {self.action} - Exit Order ID: {self.exit_order_id}')
 
-        await self.binance_client.close_connection()
+        await self.post_exit()
 
     async def short_entry(self):
         await self.pre_entry()
@@ -241,5 +249,47 @@ class BinanceFutures(BaseTrader):
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
         self.logger.info(f'{self.__name__} - {self.action} - Exit Order ID: {self.exit_order_id}')
+
+        await self.post_exit()
+
+    async def cancel_order(self, order_id: str):
+        await self.binance_client.futures_cancel_order(orderId=order_id)
+
+    async def post_exit(self):
+        while True:
+            self.logger.info(f'{self.__name__} - {self.action} - Polling for exit/stop order to be filled')
+            tp_order = await self.binance_client.futures_get_order(orderId=self.exit_order_id)
+            stop_order = await self.binance_client.futures_get_order(orderId=self.stop_order_id)
+
+            has_exited_tp = tp_order.get('status') in FINAL_ORDER_STATUSES
+            has_exited_stop = stop_order.get('status') in FINAL_ORDER_STATUSES
+
+            if has_exited_tp or has_exited_stop:
+                self.logger.info(f'{self.__name__} - {self.action} - Exit order filled')
+                self.logger.info(f'{self.__name__} - {self.action} - Has Exited TP: {has_exited_tp}')
+                self.logger.info(f'{self.__name__} - {self.action} - Has Exited Stop: {has_exited_stop}\n')
+                self.logger.info(f'{self.__name__} - {self.action} - Cancelling orders')
+                to_be_canceled_id = self.exit_order_id if has_exited_stop else self.stop_order_id
+                await self.cancel_order(order_id=to_be_canceled_id)
+
+                # Send Telegram Messaage
+                exit_price = float(tp_order.get('price') if has_exited_tp else stop_order.get('avgPrice'))
+                entry_price = float(self.entry_order.get('avgPrice'))
+                delta = abs(exit_price - entry_price)
+                delta_percent = delta / entry_price * 100 * self.leverage
+                pnl = f'-{self.format_number(delta_percent, precision=2)}' if has_exited_stop else self.format_number(delta_percent, precision=2)
+                await send_exit_message(
+                    action=self.action.value,
+                    trader=self,
+                    quantity=str(self.quantity),
+                    entry_price=str(self.entry_price),
+                    stop_price=self.stop_price,
+                    tp_price=self.tp_price,
+                    pnl=pnl,
+                )
+                break
+
+            self.logger.info(f'{self.__name__} - {self.action} - No exit detected, sleeping..')
+            await asyncio.sleep(30)
 
         await self.binance_client.close_connection()
