@@ -10,7 +10,7 @@ from binance.enums import (
     FUTURE_ORDER_TYPE_MARKET,
     ORDER_RESP_TYPE_RESULT,
     FUTURE_ORDER_TYPE_STOP_MARKET,
-    FUTURE_ORDER_TYPE_LIMIT,
+    FUTURE_ORDER_TYPE_LIMIT, TIME_IN_FORCE_GTC,
 )
 from binance.exceptions import BinanceAPIException
 from functional import seq
@@ -197,6 +197,7 @@ class BinanceFutures(BaseTrader):
             quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
             price=self.tp_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
+            timeInForce=TIME_IN_FORCE_GTC,
         )
         self.logger.info(f'{self.__name__} - {self.action} - Exit Order ID: {self.exit_order_id}')
 
