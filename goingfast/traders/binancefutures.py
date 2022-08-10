@@ -94,10 +94,10 @@ class BinanceFutures(BaseTrader):
         return self.entry_order.get('orderId')
 
     @property
-    def entry_executed_qty(self) -> str | None:
+    def entry_executed_qty(self) -> float | None:
         if not self.entry_order:
             return None
-        return self.entry_order.get('executedQty')
+        return float(self.entry_order.get('executedQty'))
 
     @property
     def stop_order_id(self) -> str | None:
