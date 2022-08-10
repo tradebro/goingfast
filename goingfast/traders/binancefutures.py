@@ -57,7 +57,7 @@ class BinanceFutures(BaseTrader):
 
     @property
     def quantity_in_asset(self) -> str:
-        q = self.quantity / self.last_price
+        q = float(self.quantity) / float(self.last_price)
         return self.format_number(q, precision=self.qty_precision)
 
     @property
