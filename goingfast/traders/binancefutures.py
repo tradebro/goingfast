@@ -10,7 +10,6 @@ from binance.enums import (
     SIDE_SELL,
     FUTURE_ORDER_TYPE_MARKET,
     FUTURE_ORDER_TYPE_STOP_MARKET,
-    FUTURE_ORDER_TYPE_LIMIT,
     ORDER_RESP_TYPE_RESULT,
     ORDER_STATUS_FILLED,
     ORDER_STATUS_CANCELED,
@@ -191,7 +190,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_SELL,
             type=FUTURE_ORDER_TYPE_STOP_MARKET,
-            quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
+            closePosition=True,
             stopPrice=self.stop_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
@@ -201,9 +200,10 @@ class BinanceFutures(BaseTrader):
         self.exit_order = await self.binance_client.futures_create_order(
             symbol=self.symbol,
             side=SIDE_SELL,
-            type=FUTURE_ORDER_TYPE_LIMIT,
+            type='TAKE_PROFIT',
             quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
             price=self.tp_price,
+            stopPrice=self.stop_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
             timeInForce=TIME_IN_FORCE_GTC,
         )
@@ -233,7 +233,7 @@ class BinanceFutures(BaseTrader):
             symbol=self.symbol,
             side=SIDE_BUY,
             type=FUTURE_ORDER_TYPE_STOP_MARKET,
-            quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
+            closePosition=True,
             stopPrice=self.stop_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
@@ -243,9 +243,10 @@ class BinanceFutures(BaseTrader):
         self.exit_order = await self.binance_client.futures_create_order(
             symbol=self.symbol,
             side=SIDE_BUY,
-            type=FUTURE_ORDER_TYPE_LIMIT,
+            type='TAKE_PROFIT',
             quantity=self.format_number(self.entry_executed_qty, precision=self.qty_precision),
             price=self.tp_price,
+            stopPrice=self.stop_price,
             newOrderRespType=ORDER_RESP_TYPE_RESULT,
         )
         self.logger.info(f'{self.__name__} - {self.action} - Exit Order ID: {self.exit_order_id}')
@@ -258,8 +259,8 @@ class BinanceFutures(BaseTrader):
     async def post_exit(self):
         while True:
             self.logger.info(f'{self.__name__} - {self.action} - Polling for exit/stop order to be filled')
-            tp_order = await self.binance_client.futures_get_order(orderId=self.exit_order_id)
-            stop_order = await self.binance_client.futures_get_order(orderId=self.stop_order_id)
+            tp_order = await self.binance_client.futures_get_order(orderId=self.exit_order_id, symbol=self.symbol)
+            stop_order = await self.binance_client.futures_get_order(orderId=self.stop_order_id, symbol=self.symbol)
 
             has_exited_tp = tp_order.get('status') in FINAL_ORDER_STATUSES
             has_exited_stop = stop_order.get('status') in FINAL_ORDER_STATUSES
